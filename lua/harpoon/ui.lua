@@ -132,6 +132,20 @@ function M.toggle_quick_menu()
         "<Cmd>lua require('harpoon.ui').select_menu_item()<CR>",
         {}
     )
+    vim.api.nvim_buf_set_keymap(
+        Harpoon_bufh,
+        "n",
+        "<C-v>",
+        "<Cmd>lua require('harpoon.ui').select_menu_item('vertical')<CR>",
+        {}
+    )
+    vim.api.nvim_buf_set_keymap(
+        Harpoon_bufh,
+        "n",
+        "<C-h>",
+        "<Cmd>lua require('harpoon.ui').select_menu_item('horizontal')<CR>",
+        {}
+    )
     vim.cmd(
         string.format(
             "autocmd BufWriteCmd <buffer=%s> lua require('harpoon.ui').on_menu_save()",
@@ -157,10 +171,10 @@ function M.toggle_quick_menu()
     )
 end
 
-function M.select_menu_item()
+function M.select_menu_item(split)
     local idx = vim.fn.line(".")
     close_menu(true)
-    M.nav_file(idx)
+    M.nav_file(idx, split)
 end
 
 function M.on_menu_save()
@@ -177,7 +191,7 @@ local function get_or_create_buffer(filename)
     return vim.fn.bufadd(filename)
 end
 
-function M.nav_file(id)
+function M.nav_file(id, split)
     log.trace("nav_file(): Navigating to", id)
     local idx = Marked.get_index_of(id)
     if not Marked.valid_index(idx) then
@@ -191,6 +205,12 @@ function M.nav_file(id)
     local set_row = not vim.api.nvim_buf_is_loaded(buf_id)
 
     local old_bufnr = vim.api.nvim_get_current_buf()
+
+    if split == "vertical" then
+      vim.cmd("vsplit")
+    elseif split == "horizontal" then
+      vim.cmd("split")
+    end
 
     vim.api.nvim_set_current_buf(buf_id)
     vim.api.nvim_buf_set_option(buf_id, "buflisted", true)
